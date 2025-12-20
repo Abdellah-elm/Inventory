@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventaire - Tableau de Bord</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #208C9F;
+            --secondary: #1a6f80;
+            --accent: #5DCEDB;
+            --dark: #1a1f36;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --white: #ffffff;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Trebuchet MS, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 290px;
+            background: linear-gradient(180deg, var(--dark) 0%, #0f1629 100%);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+            z-index: 1000;
+            padding-top: 20px;
+        }
+
+        .sidebar-brand {
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .brand-logo {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .brand-name {
+            color: var(--white);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            color: var(--accent);
+            font-size: 11px;
+            margin-top: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 15px;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 18px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            background: rgba(93, 206, 219, 0.15);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            padding-left: 22px;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(93, 206, 219, 0.25), transparent);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            font-weight: 700;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            min-width: 24px;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            right: 15px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 290px;
+            right: 0;
+            height: 80px;
+            background: var(--white);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 900;
+        }
+
+        .topbar-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .language-dropdown {
+            position: relative;
+        }
+
+        .lang-toggle {
+            background: var(--light);
+            border: 2px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text);
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lang-toggle:hover {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .lang-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+            min-width: 160px;
+            margin-top: 10px;
+            display: none;
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .lang-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .lang-option {
+            display: block;
+            padding: 12px 18px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .lang-option:hover {
+            background: var(--light);
+            color: var(--primary);
+            padding-left: 22px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(32, 140, 159, 0.3);
+        }
+
+        .username {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .main {
+            margin-left: 290px;
+            margin-top: 80px;
+            padding: 45px;
+            flex: 1;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 50px;
+            color: var(--white);
+            margin-bottom: 40px;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .welcome-text {
+            font-size: 15px;
+            opacity: 0.95;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+    
+        .entities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .entity-card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entity-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: left 0.4s ease;
+        }
+
+        .entity-card:hover::before {
+            left: 0;
+        }
+
+        .entity-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 15px 45px rgba(32, 140, 159, 0.2);
+            border-color: var(--primary);
+        }
+
+        .entity-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+
+        .entity-card:hover .entity-icon {
+            transform: scale(1.2) rotate(8deg);
+        }
+
+        .entity-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 14px;
+        }
+
+        .entity-count {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .entity-label {
+            font-size: 12px;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .content-placeholder {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .placeholder-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .placeholder-text {
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.8;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+    @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .topbar {
+                left: 200px;
+            }
+
+            .main {
+                margin-left: 200px;
+                padding: 30px;
+            }
+
+            .entities-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .topbar-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -290px;
+                width: 290px;
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+
+            .sidebar.mobile-open {
+                left: 0;
+            }
+
+            .topbar {
+                left: 0;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .entities-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .topbar-title {
+                font-size: 20px;
+            }
+
+            .welcome-card {
+                padding: 30px;
+            }
+
+            .topbar-actions {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar {
+                padding: 0 20px;
+            }
+
+            .main {
+                padding: 15px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .entity-icon {
+                font-size: 44px;
+            }
+
+            .entity-count {
+                font-size: 32px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">📦</div>
+                <div class="brand-name">Inventaire</div>
+                <div class="brand-subtitle">Gestion d'Inventaire</div>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span>Tableau de Bord</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="products">
+                        <span class="nav-icon">📦</span>
+                        <span>Produits</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="suppliers">
+                        <span class="nav-icon">🏭</span>
+                        <span>Fournisseurs</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="warehouses">
+                        <span class="nav-icon">🏢</span>
+                        <span>Entrepôts</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="orders">
+                        <span class="nav-icon">📋</span>
+                        <span>Commandes d'Achat</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="categories">
+                        <span class="nav-icon">🏷️</span>
+                        <span>Catégories</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" id="logoutBtn">🚪 Déconnexion</button>
+            </div>
+        </aside>
+
+        <header class="topbar">
+            <h1 class="topbar-title" id="currentPageTitle">Tableau de Bord</h1>
+            <div class="topbar-actions">
+                <div class="language-dropdown">
+                    <button class="lang-toggle" id="langToggle">FR</button>
+                    <div class="lang-menu" id="langMenu">
+                        <a href="#" class="lang-option" data-lang="fr">🇫🇷 Français</a>
+                        <a href="#" class="lang-option" data-lang="en">🇬🇧 Anglais</a>
+                        <a href="#" class="lang-option" data-lang="ar">🇸🇦 Arabe</a>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">A</div>
+                    <span class="username">Administrateur</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+  
+            <section class="page-section show" id="dashboardPage">
+                <h2 class="section-title">Tableau de Bord</h2>
+                <p class="section-subtitle">Bienvenue dans votre système de gestion d'inventaire</p>
+
+                <div class="welcome-card">
+                    <div class="welcome-content">
+                        <h3 class="welcome-title">Bienvenue dans Inventaire 👋</h3>
+                        <p class="welcome-text"></p>
+                    </div>
+                </div>
+
+                <div class="entities-grid">
+                    <div class="entity-card" onclick="goToPage('products')">
+                        <span class="entity-icon">📦</span>
+                        <div class="entity-name">Produits</div>
+                        <div class="entity-count">5</div>
+                        <div class="entity-label">Articles</div>
+                    </div>
+                    <div class="entity-card" onclick="goToPage('suppliers')">
+                        <span class="entity-icon">🏭</span>
+                        <div class="entity-name">Fournisseurs</div>
+                        <div class="entity-count">3</div>
+                        <div class="entity-label">Partenaires</div>
+                    </div>
+                    <div class="entity-card" onclick="goToPage('warehouses')">
+                        <span class="entity-icon">🏢</span>
+                        <div class="entity-name">Entrepôts</div>
+                        <div class="entity-count">3</div>
+                        <div class="entity-label">Emplacements</div>
+                    </div>
+                    <div class="entity-card" onclick="goToPage('orders')">
+                        <span class="entity-icon">📋</span>
+                        <div class="entity-name">Commandes</div>
+                        <div class="entity-count">3</div>
+                        <div class="entity-label">En Cours</div>
+                    </div>
+                    <div class="entity-card" onclick="goToPage('categories')">
+                        <span class="entity-icon">🏷️</span>
+                        <div class="entity-name">Catégories</div>
+                        <div class="entity-count">3</div>
+                        <div class="entity-label">Familles</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page-section" id="productsPage">
+                <h2 class="section-title">📦 Gestion des Produits</h2>
+                <p class="section-subtitle">Gérez votre catalogue de produits</p>
+                <div class="content-placeholder">
+                    <div class="placeholder-icon">📦</div>
+                    <h3 class="placeholder-title">Module Produits</h3>
+                    <p class="placeholder-text"></p>
+                </div>
+            </section>
+
+            <section class="page-section" id="suppliersPage">
+                <h2 class="section-title">🏭 Gestion des Fournisseurs</h2>
+                <p class="section-subtitle">Gérez vos partenaires commerciaux</p>
+                <div class="content-placeholder">
+                    <div class="placeholder-icon">🏭</div>
+                    <h3 class="placeholder-title">Module Fournisseurs</h3>
+                    <p class="placeholder-text"></p>
+                </div>
+            </section>
+
+            <section class="page-section" id="warehousesPage">
+                <h2 class="section-title">🏢 Gestion des Entrepôts</h2>
+                <p class="section-subtitle">Gérez vos emplacements de stockage</p>
+                <div class="content-placeholder">
+                    <div class="placeholder-icon">🏢</div>
+                    <h3 class="placeholder-title">Module Entrepôts</h3>
+                    <p class="placeholder-text"></p>
+                </div>
+            </section>
+
+            <section class="page-section" id="ordersPage">
+                <h2 class="section-title">📋 Gestion des Commandes d'Achat</h2>
+                <p class="section-subtitle">Suivez vos achats</p>
+                <div class="content-placeholder">
+                    <div class="placeholder-icon">📋</div>
+                    <h3 class="placeholder-title">Module Commandes</h3>
+                    <p class="placeholder-text">Suivi complet des commandes avec gestion des statuts, liaison fournisseurs, suivi quantités, filtrage par statut et export CSV pour la chaîne d'approvisionnement.</p>
+                </div>
+            </section>
+
+            <section class="page-section" id="categoriesPage">
+                <h2 class="section-title">🏷️ Gestion des Catégories</h2>
+                <p class="section-subtitle">Organisez vos familles de produits</p>
+                <div class="content-placeholder">
+                    <div class="placeholder-icon">🏷️</div>
+                    <h3 class="placeholder-title">Module Catégories</h3>
+                    <p class="placeholder-text"></p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+
+        window.addEventListener('load', () => {
+            if (!localStorage.getItem('user')) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.dataset.page;
+                navigateTo(page);
+            });
+        });
+
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelector([data-page=="${page}"]).classList.add('active');
+
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('show'));
+            document.getElementById(page + 'Page').classList.add('show');
+
+            const titles = {
+                dashboard: 'Tableau de Bord',
+                products: 'Gestion des Produits',
+                suppliers: 'Gestion des Fournisseurs',
+                warehouses: 'Gestion des Entrepôts',
+                orders: 'Gestion des Commandes',
+                categories: 'Gestion des Catégories'
+            };
+            document.getElementById('currentPageTitle').textContent = titles[page];
+        }
+
+        function goToPage(page) {
+            const link = document.querySelector([data-page=="${page}"]);
+            if (link) link.click();
+        }
+
+        const langToggle = document.getElementById('langToggle');
+        const langMenu = document.getElementById('langMenu');
+
+        langToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            langMenu.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.preventDefault();
+                const lang = opt.dataset.lang;
+                langToggle.textContent = lang.toUpperCase();
+                langMenu.classList.remove('active');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.language-dropdown')) {
+                langMenu.classList.remove('active');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
